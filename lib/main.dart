@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:zebrautility/ZebraPrinter.dart';
-import 'package:zebrautility/zebrautility.dart';
+
 
 // void main() => runApp(MyApp());
 void main() {
@@ -24,18 +23,7 @@ class FileFinderScreen extends StatefulWidget {
 }
 
 class _FileFinderScreenState extends State<FileFinderScreen> {
-  // conectar impresora
-  ZebraPrinter? zebraPrinter;
-  bool searchingWifi = false;
-  bool searchingBluetooth = false;
-  List<AvailablePrinter> availablePrinters = <AvailablePrinter>[];
-  AvailablePrinter? printer;
 
-  @override
-  void initState() {
-    super.initState();
-    initializePrinter();
-  }
   // ----------------------------------------
   void verificarConexionBuscarArchivo() async {
     final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
@@ -54,25 +42,11 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
     File file = File(downloadsPath);
     if (file.existsSync()) {
       _showDialog("Archivo Encontrado", "El archivo factura_zebra_1.pdf fue encontrado en Descargas.");
-       imprimirPdf(file); // Llamar a la función para imprimir el PDF
     } else {
       _showDialog("Archivo No Encontrado", "No se encontró el archivo factura_zebra_1.pdf");
     }
   }
-  // Funcion para enviar el PDF a la impresora
-  void imprimirPdf(File pdfFile) async {
-    if (zebraPrinter != null) {
-      // Aquí se manda el archivo PDF a la impresora
-      String pdfFilePath = pdfFile.path;
 
-      // Ejemplo de comando ZPL para impresión de archivo PDF
-      //zebraPrinter?.print("! U1 setvar \"pdf.printfile\" \"$pdfFilePath\"");
-      debugPrint("Enviando archivo a la impresora: $pdfFilePath");
-      _showDialog("Impresión", "El archivo PDF ha sido enviado a la impresora.");
-    } else {
-      _showDialog("Error de Impresora", "No hay impresora conectada.");
-    }
-  }
   // mensaje de informacion
   void _showDialog(String title, String message) {
     showDialog(
@@ -91,29 +65,6 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
       },
     );
   }
-  // Inicializar la impresora Zebra
-  void initializePrinter() async {
-    zebraPrinter ??= await Zebrautility.getPrinterInstance(
-      onPrinterFound: (name, ipAddress, isWifi) {
-        debugPrint("Impresora encontrada: $name $ipAddress $isWifi");
-        availablePrinters.add(AvailablePrinter(name: name, ipAddress: ipAddress, isWifi: isWifi));
-      },
-      onPrinterDiscoveryDone: () {
-        debugPrint("Descubrimiento de impresoras finalizado.");
-      },
-      onDiscoveryError: (int errorCode, String error) {
-        debugPrint("Error en el descubrimiento: $error");
-      },
-      onChangePrinterStatus: (status, color) {
-        if (status == "Done") {
-          debugPrint("Conexión exitosa con la impresora.");
-        }
-      },
-      onPermissionDenied: () {
-        debugPrint("Permiso denegado.");
-      },
-    );
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,13 +77,4 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
       ),
     );
   }
-}
-
-// Clase para representar las impresoras disponibles
-class AvailablePrinter {
-  String name;
-  String ipAddress;
-  bool isWifi;
-
-  AvailablePrinter({required this.name, required this.ipAddress, this.isWifi = false});
 }

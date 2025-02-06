@@ -293,14 +293,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
-  zebrautility:
-    dependency: "direct main"
-    description:
-      name: zebrautility
-      sha256: bfacf9474f29385613fb81fa24cb9fa3aa26dcb21f057bd6548760cc567e7856
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.41"
 sdks:
   dart: ">=3.6.1 <4.0.0"
   flutter: ">=3.18.0-18.0.pre.54"
