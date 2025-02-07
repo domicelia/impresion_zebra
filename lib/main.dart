@@ -36,12 +36,12 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
 
     if (connectivityResult.contains(ConnectivityResult.bluetooth) || connectivityResult.contains(ConnectivityResult.wifi)) {
       debugPrint("Conectividad disponible (Wi-Fi o Bluetooth):${connectivityResult}");
-      findFile();
+      buscarArchivo();
     } else {
       _showDialog("Error", "No hay conexión disponible (Wi-Fi o Bluetooth requerido).");
     }
   }
-  Future<void> findFile() async{
+  Future<void> buscarArchivo() async{
     Directory? directorioBase =await getDownloadsDirectory();
     directorioBase ??= await getApplicationDocumentsDirectory();
     if (!await directorioBase.exists()){
@@ -50,7 +50,6 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
     String directoryPath = p.join(directorioBase.path,'factura_zebra_1.pdf',);
     File file = File(directoryPath);
     if (file.existsSync()) {
-      //_showDialog("Archivo Encontrado", "El archivo factura_zebra_1.pdf fue encontrado en Descargas.");
        buscarImpresora();
     } else {
       _showDialog("Archivo No Encontrado", "No se encontró el archivo factura_zebra_1.pdf");
@@ -64,7 +63,6 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
       debugPrint("-----iniciando-escaneo---------");
       FlutterBluePlus.startScan(timeout: Duration(seconds: 50));
       FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
-        debugPrint("------ Escaneo completado ------");
         // Imprimir todos los resultados de escaneo para depuración
         debugPrint("Resultados del escaneo: ${results.map((r) => r.device.name).toList()}");
         for (ScanResult r in results) {
@@ -109,12 +107,13 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
       _showDialog("Error", "No se encontró el archivo para imprimir.");
       return;
     }
-
+    debugPrint("enviando para imprimir");
     List<int> bytes = await file.readAsBytes(); // Leer PDF como bytes
     Uint8List uint8ListBytes = Uint8List.fromList(bytes); // Convertir a Uint8List
     await Printing.layoutPdf(
       onLayout: (format) async =>uint8ListBytes, // Convertido correctamente
     );
+    debugPrint("finalizo envio de archivo");
     _showDialog("Impresión Enviada", "El archivo ha sido enviado a la impresora.");
   }
 
