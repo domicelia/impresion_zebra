@@ -32,7 +32,7 @@ class ImpresionArchivosPdf extends StatefulWidget {
 class _ImpresionArchivosPdfState extends State<ImpresionArchivosPdf> {
   String filePath= '/storage/emulated/0/Android/data/com.example.impresion_zebra/files/downloads/factura_zebra_1.pdf';
   BluetoothDevice? zebraPrinter;
-  // ----------------------------------------
+  // ----------------------------------------//
   void imprimirArchivo() async {
     final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult.contains(ConnectivityResult.bluetooth) || connectivityResult.contains(ConnectivityResult.wifi)) {
