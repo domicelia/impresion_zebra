@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:esc_pos_printer_plus/esc_pos_printer_plus.dart';
 
 // void main() => runApp(MyApp());
 void main() {
@@ -81,6 +82,7 @@ class _ImpresionArchivosPdfState extends State<ImpresionArchivosPdf> {
     await Printing.layoutPdf(
       onLayout: (format) async =>uint8ListBytes, // Convertido correctamente
     );
+    // Printing.directPrintPdf(printer: printer,onLayout: (format) => uint8ListBytes);
     debugPrint("finalizo envio de archivo");
   }
 
