@@ -18,103 +18,70 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: FileFinderScreen(),
+      home: ImpresionArchivosPdf(),
     );
   }
 }
 
-class FileFinderScreen extends StatefulWidget {
+class ImpresionArchivosPdf extends StatefulWidget {
+
   @override
-  _FileFinderScreenState createState() => _FileFinderScreenState();
+  _ImpresionArchivosPdfState createState() => _ImpresionArchivosPdfState();
 }
 
-class _FileFinderScreenState extends State<FileFinderScreen> {
+class _ImpresionArchivosPdfState extends State<ImpresionArchivosPdf> {
+  String filePath= '/storage/emulated/0/Android/data/com.example.impresion_zebra/files/downloads/factura_zebra_1.pdf';
   BluetoothDevice? zebraPrinter;
   // ----------------------------------------
-  void verificarConexionBuscarArchivo() async {
+  void imprimirArchivo() async {
     final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
-
     if (connectivityResult.contains(ConnectivityResult.bluetooth) || connectivityResult.contains(ConnectivityResult.wifi)) {
-      debugPrint("Conectividad disponible (Wi-Fi o Bluetooth):${connectivityResult}");
-      buscarArchivo();
+      File file = File(filePath);
+      if (file.existsSync()) { //verificar existencia de archivo
+        buscarImpresora();
+      } else {
+        _showDialog("Archivo No Encontrado", "No se encontró el archivo $filePath");
+      }
     } else {
       _showDialog("Error", "No hay conexión disponible (Wi-Fi o Bluetooth requerido).");
     }
   }
-  Future<void> buscarArchivo() async{
-    Directory? directorioBase =await getDownloadsDirectory();
-    directorioBase ??= await getApplicationDocumentsDirectory();
-    if (!await directorioBase.exists()){
-        await directorioBase.create(recursive: true);
-    }
-    String directoryPath = p.join(directorioBase.path,'factura_zebra_1.pdf',);
-    File file = File(directoryPath);
-    if (file.existsSync()) {
-       buscarImpresora();
-    } else {
-      _showDialog("Archivo No Encontrado", "No se encontró el archivo factura_zebra_1.pdf");
-    }
-  }
-   // Escanear impresoras Bluetooth
+  // Escanear impresoras Bluetooth
   void buscarImpresora() async {
-   // _showDialog("Buscando Impresoras", "Escaneando dispositivos Bluetooth...");
-     var status = await Permission.location.request();
+    var status = await Permission.location.request();
     if (status.isGranted){
       debugPrint("-----iniciando-escaneo---------");
       FlutterBluePlus.startScan(timeout: Duration(seconds: 50));
       FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
         // Imprimir todos los resultados de escaneo para depuración
-        debugPrint("Resultados del escaneo: ${results.map((r) => r.device.name).toList()}");
+        debugPrint("Resultados del escaneo: ${results.map((r) => r.device.platformName).toList()}");
         for (ScanResult r in results) {
-          if (r.device.name.contains("ZQ-ELSA")){
+          if (r.device.platformName.contains("ZQ-ELSA")){
             zebraPrinter = r.device;
-            _showDialog("Impresora Encontrada", "Impresora ${r.device.name} encontrada. Conectando...");
-            conectarseAImpresora();
             break;
           }
         }
       });
-       // Si no se encuentran resultados después de 30 segundos, muestra un mensaje
-      Future.delayed(Duration(seconds: 30), () {
-        if (zebraPrinter == null) {
-          _showDialog("No se encontraron impresoras", "No se encontraron impresoras Zebra.");
-        }
-      });
+      if (zebraPrinter!=null){
+        await zebraPrinter!.connect();
+        _showDialog("Conectado", "Conectado a la impresora ${zebraPrinter!.platformName}");
+        enviarAImpresora();
+      }else{
+         _showDialog("No se encontraron impresoras", "No se encontraron impresoras Zebra.");
+      }
     } else {
     _showDialog("Permiso Denegado", "Se necesitan permisos de ubicación para escanear dispositivos Bluetooth.");
     }
   }
-   // Conectarse a la impresora
-  void conectarseAImpresora() async {
-    if (zebraPrinter != null) {
-      await zebraPrinter!.connect();
-      _showDialog("Conectado", "Conectado a la impresora Zebra ZQ320.");
-      enviarAImpresora();
-    } else {
-      _showDialog("Error", "No se encontró la impresora.");
-    }
-  }
-
    // Enviar archivo PDF a la impresora
   void enviarAImpresora() async {
-    Directory? directorioBase =await getDownloadsDirectory();
-    directorioBase ??= await getApplicationDocumentsDirectory();
-    String filePath = p.join(directorioBase.path,'factura_zebra_1.pdf',);
-    //String filePath = "/storage/emulated/0/Download/factura_zebra_1.pdf";
     File file = File(filePath);
-
-    if (!file.existsSync()) {
-      _showDialog("Error", "No se encontró el archivo para imprimir.");
-      return;
-    }
-    debugPrint("enviando para imprimir");
     List<int> bytes = await file.readAsBytes(); // Leer PDF como bytes
     Uint8List uint8ListBytes = Uint8List.fromList(bytes); // Convertir a Uint8List
     await Printing.layoutPdf(
       onLayout: (format) async =>uint8ListBytes, // Convertido correctamente
     );
     debugPrint("finalizo envio de archivo");
-    _showDialog("Impresión Enviada", "El archivo ha sido enviado a la impresora.");
   }
 
   // mensaje de informacion
@@ -141,8 +108,8 @@ class _FileFinderScreenState extends State<FileFinderScreen> {
       appBar: AppBar(title: Text("Buscar Archivo en con conectividad")),
       body: Center(
         child: ElevatedButton(
-          onPressed: verificarConexionBuscarArchivo,//findFile,
-          child: Text("Buscar Archivo"),
+          onPressed: imprimirArchivo,//findFile,
+          child: Text("Imprimir en Zebra"),
         ),
       ),
     );
