@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
@@ -8,7 +9,8 @@ import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:esc_pos_printer_plus/esc_pos_printer_plus.dart';
+import 'package:zsdk/zsdk.dart';
+// import 'package:esc_pos_printer_plus/esc_pos_printer_plus.dart';
 
 // void main() => runApp(MyApp());
 void main() {
@@ -77,13 +79,33 @@ class _ImpresionArchivosPdfState extends State<ImpresionArchivosPdf> {
    // Enviar archivo PDF a la impresora
   void enviarAImpresora() async {
     File file = File(filePath);
-    List<int> bytes = await file.readAsBytes(); // Leer PDF como bytes
-    Uint8List uint8ListBytes = Uint8List.fromList(bytes); // Convertir a Uint8List
+    List<int> pdfBytes  = await file.readAsBytes(); // Leer PDF como bytes
+    
+    Uint8List uint8ListBytes = Uint8List.fromList(pdfBytes); // Convertir a Uint8List
     await Printing.layoutPdf(
       onLayout: (format) async =>uint8ListBytes, // Convertido correctamente
     );
+    //Printer? impresora = await Printing.pickPrinter(context: context);
+    // debugPrint("Resultados del escaneo PRUEBA1: ${zebraPrinter}");
+    // await Printing.directPrintPdf(
+    //   printer: Printer(url: zebraPrinter!.remoteId.str),
+    //   onLayout: (format) => uint8ListBytes,
+    // );
+    // List<Printer> printers = await Printing.listPrinters();
+    // debugPrint("Resultados del escaneo PRUEBA1: ${printers}");
+    // debugPrint("Resultados del escaneo PRUEBA: ${printers.map((r) => r.name).toList()}");
+    // if (printers.isNotEmpty) {
+    //   Printer selectedPrinter = printers[0];
+    //     await Printing.directPrintPdf(
+    //       printer: selectedPrinter,
+    //       onLayout: (format) => uint8ListBytes,
+    //     );
+    // } else {
+    //   debugPrint('No se encontraron impresoras locales.');
+    // }
+ 
     // Printing.directPrintPdf(printer: printer,onLayout: (format) => uint8ListBytes);
-    debugPrint("finalizo envio de archivo");
+   
   }
 
   // mensaje de informacion
